@@ -1,207 +1,118 @@
 # Auth Frontend - User Authentication System
 
-A full-stack authentication application built with React, Node.js, and Quarkus backend. This project implements user signup, login, email verification, and session management.
-
-## 🚀 Features
-
-- **User Signup** with email and password
-  - Real-time password validation (uppercase, lowercase, digit, special character)
-  - Email domain autocomplete suggestions (@gmail.com, @live.com, @yahoo.com)
-- **User Login** with session management
-- **Email Verification** via link
-- **Protected Dashboard** showing verification status
-- **Auto-refresh** verification status polling
-- **Comprehensive Testing** with Jest and Vitest
+A full-stack authentication application built with **React**, **Node.js (Middleware)**, and a **Quarkus** backend. This project implements a secure, industry-standard authentication flow featuring email verification, session management, and a multi-tier cloud architecture.
 
 ## 🏗️ Architecture
 
-```
-auth-frontend/
-├── client/          # React + Vite frontend
-├── server/          # Node.js + Express session server
-└── README.md
-```
+The application uses a three-tier architecture to enhance security and session control:
+1.  **Frontend (Vercel)**: React SPA handling the UI and client-side routing.
+2.  **Middleware (Render)**: Node.js/Express server managing stateful sessions (`express-session`) and proxying requests to the backend.
+3.  **Backend (Render)**: Quarkus service handling business logic, persistence (Supabase/PostgreSQL), and JWT issuance.
 
-**Backend**: [Quarkus Auth Service](https://github.com/techyJimbei/auth-service)
+
+
+## 🚀 Features
+
+- **User Signup**: Real-time password complexity validation and email domain autocomplete.
+- **User Login**: Multi-stage authentication involving password verification in Quarkus and session creation in Node.js.
+- **Seamless Email Verification**: Automatic redirection from Email -> Middleware -> Frontend Dashboard upon success.
+- **Protected Dashboard**: Restricts access based on verification status with auto-polling for real-time updates.
+- **JWT Security**: Backend tokens signed with **HS256 (Symmetric Key)** for stateless integrity.
 
 ## 📋 Prerequisites
 
-- Node.js (v16+)
-- Quarkus backend running on `http://localhost:8080`
-- PostgreSQL database (configured in Quarkus)
+- Node.js (v18+)
+- Quarkus backend running on Render/Local
+- PostgreSQL/Supabase database
+- Resend API account for email delivery
 
-## 🛠️ Installation
+## 🛠️ Installation & Setup
 
 ### 1. Clone the Repository
 ```bash
 git clone <your-repo-url>
 cd auth-frontend
+
 ```
 
-### 2. Install Server Dependencies
-```bash
-cd server
-npm install
-```
+### 2. Middleware Server (.env)
 
-### 3. Install Client Dependencies
-```bash
-cd ../client
-npm install
-```
+Create a `.env` file in the `server/` directory:
 
-## 🚀 Running Locally
-
-### Start the Node.js Server (Port 3001)
-```bash
-cd server
-npm run dev
-```
-
-### Start the React Client (Port 5173)
-```bash
-cd client
-npm run dev
-```
-
-### Access the Application
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-## 🧪 Testing
-
-### Run Server Tests
-```bash
-cd server
-npm test
-```
-
-### Run Client Tests
-```bash
-cd client
-npm test
-```
-
-## 🔐 Environment Variables
-
-### Server (.env)
 ```env
-PORT=3001
-QUARKUS_API=http://localhost:8080/api
-SESSION_SECRET=your-secret-key-change-in-production
+PORT=10000
+QUARKUS_API=[https://auth-service-qav9.onrender.com/api](https://auth-service-qav9.onrender.com/api)
+SESSION_SECRET=your_secure_random_string
+FRONTEND_URL=[https://oppenxai-auth-service.vercel.app](https://oppenxai-auth-service.vercel.app)
+
 ```
 
-## 📱 User Flows
+### 3. Frontend Client (.env)
 
-### 1. Signup
-- Navigate to `/signup`
-- Enter email and password (must meet requirements)
-- Password validation shows real-time feedback
-- Email suggestions appear when typing `@`
-- Submit to create account
+Create a `.env` file in the `client/` directory:
 
-### 2. Login
-- Navigate to `/login`
-- Enter credentials
-- Redirects to dashboard on success
+```env
+VITE_API_URL=[https://auth-frontend-swo7.onrender.com](https://auth-frontend-swo7.onrender.com)
 
-### 3. Dashboard
-- Shows email verification status
-- **Unverified**: "You need to validate your email to access the portal"
-- **Verified**: "Your email is validated. You can access the portal"
-- Auto-refreshes every 5 seconds to check verification status
+```
 
-### 4. Email Verification
-- Check email for verification link
-- Click link to verify
-- Dashboard automatically updates
+## 🚀 Deployment Configuration
+
+### Vercel (Frontend)
+
+To prevent `404 NOT FOUND` errors on page refresh or redirects, a `vercel.json` is required in the root:
+
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+
+```
+
+### Render (Middleware)
+
+* **Build Command**: `npm install`
+* **Start Command**: `node server.js`
+* **Environment**: Ensure `NODE_ENV` is set to `production`.
+
+## 🔄 Updated User Flows
+
+### 1. Verification Redirection
+
+Instead of showing a static success page, the system now follows a seamless transition:
+
+* User clicks link in email.
+* **Node.js Middleware** catches the request and triggers the **Quarkus** verification logic.
+* Upon success, the Middleware issues a `302 Redirect` directly to the Frontend Dashboard.
+* The React app detects the new status via `checkAuth()` and updates the UI instantly.
+
+### 2. Session Security
+
+* **Cross-Origin**: Configured with `credentials: true` and `SameSite: 'none'` to allow the Vercel frontend to communicate with the Render middleware.
+* **JWT Signature**: Tokens are signed by Quarkus using a 32-character symmetric key (`HS256`) defined in environment variables.
 
 ## 🎨 Tech Stack
 
-### Frontend
-- React 18
-- Vite
-- React Router
-- Axios
-- Vitest + React Testing Library
-
-### Backend (Session Layer)
-- Node.js
-- Express
-- Express Session
-- Jest + Supertest
-
-### Backend (API)
-- Quarkus
-- PostgreSQL
-- JWT Authentication
-
-## 📦 Deployment
-
-### Option 1: Render.com (Recommended)
-
-**Deploy Node.js Server:**
-- Root directory: `server/`
-- Build: `npm install`
-- Start: `npm start`
-
-**Deploy React Client:**
-- Root directory: `client/`
-- Build: `npm install && npm run build`
-- Publish: `dist/`
-
-### Option 2: Separate Platforms
-- **Frontend**: Vercel/Netlify
-- **Server**: Render/Railway
-- **Backend**: Render/Railway
-- **Database**: Neon/Supabase
-
-## 🔧 Configuration for Production
-
-Update `client/src/App.jsx`:
-```javascript
-axios.defaults.baseURL = 'https://your-server-url.com';
-```
-
-Update `server/server.js`:
-```javascript
-const QUARKUS_API = process.env.QUARKUS_API || 'https://your-backend-url.com/api';
-```
-
-## 📝 API Endpoints
-
-### Node.js Server (Port 3001)
-- `POST /api/auth/signup` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/verify?token=xxx` - Email verification
+* **Frontend**: React 18, Vite, React Router v6, Axios.
+* **Middleware**: Node.js, Express, Express-Session, Axios.
+* **Backend API**: Quarkus (Java), Hibernate Panache, SmallRye JWT, Resend SDK.
+* **Persistence**: Supabase (PostgreSQL).
 
 ## 🧪 Testing Coverage
 
-- ✅ Login component tests
-- ✅ Signup component tests
-- ✅ Dashboard component tests
-- ✅ Server API endpoint tests
-- ✅ Session management tests
-- ✅ Error handling tests
+The project includes a comprehensive suite of tests:
 
-## 🤝 Contributing
-
-This project was created as part of a coding assessment to demonstrate:
-- Full-stack development skills
-- Learning new technologies (Quarkus)
-- Clean code practices
-- Comprehensive testing
-- Modern UX patterns
-
-## 📄 License
-
-MIT
+* ✅ **Frontend**: Component rendering and navigation flow (Vitest).
+* ✅ **Middleware**: Proxy routing and session persistence (Jest/Supertest).
+* ✅ **Backend**: API endpoint security and DB transactions (JUnit/RestAssured).
 
 ## 👤 Author
 
-Shruti - [GitHub](https://github.com/techyJimbei)
+Shruti - [GitHub Profile](https://github.com/techyJimbei)
 
 ## 🔗 Related Repositories
 
-- [Quarkus Backend](https://github.com/techyJimbei/auth-service)
+* [Quarkus Backend Service](https://github.com/techyJimbei/auth-service)
+
