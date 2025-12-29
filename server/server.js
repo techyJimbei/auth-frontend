@@ -7,10 +7,13 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Backend API URL
 const QUARKUS_API = process.env.QUARKUS_API || 'https://auth-service-qav9.onrender.com/api';
-// Define your Frontend URL clearly
+
+// Frontend Base URL
 const FRONTEND_URL = 'https://oppenxai-auth-service.vercel.app';
 
+// Allowed origins
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
@@ -20,6 +23,7 @@ const allowedOrigins = [
 
 app.set('trust proxy', 1);
 
+// CORS Configuration
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
@@ -40,6 +44,7 @@ app.use(cors({
 
 app.use(express.json());
 
+// Session Configuration
 app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
     resave: false,
@@ -95,27 +100,27 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 /**
- * MODIFIED: Verify Email with Auto-Redirect
- * This route now teleports the user directly to the Dashboard
+ * UPDATED: Verify Email with SPA-Safe Redirect
+ * Redirecting to the base URL '/' is safer for Vercel if vercel.json is not set up.
+ * Your App.js useEffect will catch the verified state and move the user to /dashboard.
  */
 app.get('/api/auth/verify', async (req, res) => {
     try {
-        // 1. Tell Quarkus to verify the token in the database
+        // 1. Trigger Quarkus verification
         await axios.get(`${QUARKUS_API}/auth/verify?token=${req.query.token}`);
 
-        // 2. Update the session if the user happens to be logged in on this browser
+        // 2. Update local session if it exists
         if (req.session.user) {
             req.session.user.isVerified = true;
         }
 
-        // 3. SEAMLESS REDIRECT: Send them straight to the Frontend Dashboard
-        // React App.js will run checkAuth() and see isVerified: true
-        console.log('Verification successful, redirecting to dashboard...');
-        res.redirect(`${FRONTEND_URL}/dashboard?verified=true`);
+        console.log('Verification successful, redirecting to frontend root...');
+        
+        // Redirecting to root '/' ensures the SPA loads properly on Vercel
+        res.redirect(`${FRONTEND_URL}/?verified=true`);
 
     } catch (error) {
         console.error('Verification error:', error.message);
-        // On error, send them to login with an error message in the URL
         res.redirect(`${FRONTEND_URL}/login?error=verification_failed`);
     }
 });
