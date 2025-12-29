@@ -7,7 +7,7 @@ import Dashboard from './components/Dashboard';
 import './App.css';
 
 // Configure axios
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'https://auth-frontend-swo7.onrender.com';
 axios.defaults.withCredentials = true;
 
 function App() {
