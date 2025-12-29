@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
 import axios from 'axios';
 
 export default function Login({ onLogin }) {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // Initialize the navigate function
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -13,8 +14,16 @@ export default function Login({ onLogin }) {
     setLoading(true);
 
     try {
-      await axios.post('/api/auth/login', formData);
-      onLogin(); // Refresh user state
+      // 1. Send login request
+      const response = await axios.post('/api/auth/login', formData);
+      
+      // 2. Call the parent function to update the user state in App.js
+      // We 'await' it to ensure state is processing before we move
+      await onLogin(); 
+      
+      // 3. Manually trigger navigation to the dashboard
+      navigate('/dashboard'); 
+      
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     } finally {

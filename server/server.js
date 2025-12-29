@@ -12,11 +12,14 @@ const QUARKUS_API = process.env.QUARKUS_API || 'https://auth-service-qav9.onrend
 
 // Allowed origins - both production and preview URLs
 const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://oppenxai-auth-service.vercel.app',
-    /https:\/\/auth-frontend-.*\.vercel\.app$/ // Allow all Vercel preview URLs
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://oppenxai-auth-service.vercel.app',
+  /https:\/\/auth-frontend-.*\.vercel\.app$/
 ];
+
+app.set('trust proxy', 1);
+
 
 // CORS Configuration
 app.use(cors({
