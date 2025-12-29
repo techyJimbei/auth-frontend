@@ -30,7 +30,7 @@ The application uses a three-tier architecture to enhance security and session c
 
 ### 1. Clone the Repository
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/techyJimbei/auth-frontend.git
 cd auth-frontend
 
 ```
